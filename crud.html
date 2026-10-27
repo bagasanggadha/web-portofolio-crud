@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Manajemen Inventaris</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans antialiased text-gray-800">
+
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
+      <div class="p-5 text-xl font-bold border-b border-slate-800 flex items-center gap-2">
+        <span>⚡ AdminPanel</span>
+      </div>
+      <nav class="flex-1 p-4 space-y-2">
+        <a href="#" class="block px-4 py-2.5 rounded bg-blue-600 text-white font-medium">Dashboard Data</a>
+        <a href="index.html" class="block px-4 py-2.5 rounded text-slate-400 hover:bg-slate-800 hover:text-white font-medium transition flex items-center gap-2">
+          ⬅️ Kembali ke Portofolio
+        </a>
+      </nav>
+      <div class="p-4 border-t border-slate-800 text-xs text-slate-400">
+        Demo Portofolio Web Developer
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-y-auto">
+      
+      <!-- Top Header -->
+    <header class="bg-white shadow-sm p-4 flex justify-between items-center px-6">
+        <div class="flex items-center gap-4">
+          <a href="index.html" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1 border border-slate-200">
+            ⬅️ Portofolio
+          </a>
+          <h1 class="text-xl font-semibold text-gray-800 hidden sm:block">Manajemen Inventaris & Data</h1>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center gap-1.5">
+            📥 Export CSV
+          </button>
+          <button id="btnBukaModal" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow">
+            + Tambah Data
+          </button>
+          <button onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition shadow flex items-center gap-1">
+          🚪 Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Container -->
+      <main class="p-6 space-y-6">
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+            <p class="text-xs text-gray-500 uppercase font-bold">Total Barang</p>
+            <p id="totalItem" class="text-2xl font-bold text-gray-800 mt-1">0</p>
+          </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <input type="text" id="searchInput" placeholder="Cari barang berdasarkan nama..." 
+            class="w-full sm:w-80 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Table Data -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-50 text-gray-600 text-xs uppercase border-b border-gray-200">
+                  <th class="p-4">No</th>
+                  <th class="p-4">Nama Barang</th>
+                  <th class="p-4">Kategori</th>
+                  <th class="p-4">Jumlah Stok</th>
+                  <th class="p-4 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="dataTable" class="divide-y divide-gray-100 text-sm">
+                <!-- Data dinamis dari JavaScript akan masuk ke sini -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal Form (Hidden by default) -->
+  <div id="modalForm" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="modalTitle" class="text-lg font-bold text-gray-800">Tambah Barang Baru</h3>
+        <button id="btnTutupModal" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+      </div>
+
+      <form id="itemForm" class="space-y-4">
+        <input type="hidden" id="itemId"> <!-- Tempat menyimpan ID jika mode Edit -->
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Nama Barang</label>
+          <input type="text" id="namaBarang" required placeholder="Contoh: Monitor LED 24 Inch" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Kategori</label>
+          <select id="kategoriBarang" required 
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">-- Pilih Kategori --</option>
+            <option value="Elektronik">Elektronik</option>
+            <option value="Perlengkapan Kantor">Perlengkapan Kantor</option>
+            <option value="Aksesori Network">Aksesori Network</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Jumlah Stok</label>
+          <input type="number" id="stokBarang" min="1" required placeholder="Contoh: 10" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="btnBatal" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+
+  <!-- Modal Login -->
+<div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 space-y-4">
+    <div class="text-center space-y-1">
+      <h2 class="text-xl font-bold text-slate-800">🔑 Login Admin</h2>
+      <p class="text-xs text-slate-500">Masukkan kredensial untuk mengelola data inventaris</p>
+    </div>
+    <form id="loginForm" class="space-y-3">
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
+        <input type="text" id="loginUsername" placeholder="admin" required class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <p id="loginError" class="text-xs text-rose-500 font-medium hidden text-center">Username atau password salah!</p>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold transition shadow">
+        Masuk Sistem
+      </button>
+    </form>
+    <div class="text-center text-[11px] text-slate-400 border-t pt-3">
+      Demo Kredensial: <b>admin</b> / <b>admin123</b>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
